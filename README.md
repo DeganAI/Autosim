@@ -1,4 +1,4 @@
-# Auto Shipping Coordinator
+# AutoSim
 
 <p align="center">
   <img src="sim/public/static/sim.png" alt="Sim Studio Logo" width="500"/>
@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>Auto Shipping Coordinator</strong> is a powerful integration solution built on Sim Studio that connects Dialpad, BatsCRM, and Slack to automate shipping coordination workflows.
+  <strong>AutoSim</strong> is a powerful integration solution built on Sim Studio that connects Dialpad, BatsCRM, and Slack to automate shipping coordination workflows.
 </p>
 
 ## Features
