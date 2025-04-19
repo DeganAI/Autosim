@@ -122,4 +122,4 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ##
 
-<p align="center">Made with ❤️ by YOUR_NAME</p>
+<p align="center">Made with ❤️ by DegenAI</p>
