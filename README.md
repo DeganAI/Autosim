@@ -1,3 +1,5 @@
+# Auto Shipping Coordinator
+
 <p align="center">
   <img src="sim/public/static/sim.png" alt="Sim Studio Logo" width="500"/>
 </p>
@@ -5,167 +7,119 @@
 <p align="center">
   <a href="https://www.apache.org/licenses/LICENSE-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License: Apache-2.0"></a>
   <a href="https://discord.gg/Hr4UWYEcTT"><img src="https://img.shields.io/badge/Discord-Join%20Server-7289DA?logo=discord&logoColor=white" alt="Discord"></a>
-  <a href="https://x.com/simstudioai"><img src="https://img.shields.io/twitter/follow/simstudioai?style=social" alt="Twitter"></a>
-  <a href="https://github.com/simstudioai/sim/pulls"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs welcome"></a>
-  <a href="https://github.com/simstudioai/sim/issues"><img src="https://img.shields.io/badge/support-contact%20author-purple.svg" alt="support"></a>
+  <a href="https://github.com/YOUR_USERNAME/auto-shipping-coordinator/pulls"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs welcome"></a>
+  <a href="https://github.com/YOUR_USERNAME/auto-shipping-coordinator/issues"><img src="https://img.shields.io/badge/support-contact%20author-purple.svg" alt="support"></a>
 </p>
 
 <p align="center">
-  <strong>Sim Studio</strong> is a powerful, user-friendly platform for building, testing, and optimizing agentic workflows.
+  <strong>Auto Shipping Coordinator</strong> is a powerful integration solution built on Sim Studio that connects Dialpad, BatsCRM, and Slack to automate shipping coordination workflows.
 </p>
 
-## Run
+## Features
 
-1. Run on our [cloud-hosted version](https://simstudio.ai)
-2. Self-host
+- **Automated Customer Communications**: Send personalized SMS and make calls through Dialpad based on order status changes
+- **Intelligent Response Handling**: Process incoming customer messages with AI-powered intent recognition
+- **Real-time Team Updates**: Automated Slack notifications for shipping events and customer inquiries
+- **BatsCRM Integration**: Seamlessly update order statuses and shipping information
+- **Customizable Workflows**: Tailor the system to match your specific shipping processes
 
-## How to Self-Host
+## How It Works
 
-There are several ways to self-host Sim Studio:
+This system leverages Sim Studio's workflow capabilities to:
 
-### Option 1: Docker Environment (Recommended)
+1. **Monitor Events**: Capture order updates, shipping events, and customer messages
+2. **Process with AI**: Analyze event data and determine appropriate actions
+3. **Automate Communication**: Generate personalized customer messages and team notifications
+4. **Execute Actions**: Update CRM records, send notifications, and track shipping status
 
-```bash
-# Clone your forked repository
-git clone https://github.com/YOUR_USERNAME/sim.git
-cd sim
+## Getting Started
 
-# Create environment file and update with required environment variables (BETTER_AUTH_SECRET)
-cp sim/.env.example sim/.env
+### Prerequisites
 
-# Start Sim Studio using the provided script
-docker compose up -d --build
+- [Sim Studio](https://simstudio.ai) account
+- Dialpad Business/Enterprise account with API access
+- BatsCRM account with API access
+- Slack workspace with app creation privileges
 
-or
+### Installation Options
 
-./start_simstudio_docker.sh
-```
-
-After running these commands:
-
-1. **Access the Application**:
-
-   - Open [http://localhost:3000/w/](http://localhost:3000/w/) in your browser
-   - The `/w/` path is where the main workspace interface is located
-
-2. **Useful Docker Commands**:
-
-   ```bash
-   # View application logs
-   docker compose logs -f simstudio
-
-   # Access PostgreSQL database
-   docker compose exec db psql -U postgres -d simstudio
-
-   # Stop the environment
-   docker compose down
-
-   # Rebuild and restart (after code changes)
-   docker compose up -d --build
-   ```
-
-#### Working with Local Models
-
-To use local models with Sim Studio, follow these steps:
-
-1. **Pull Local Models**
-
-   ```bash
-   # Run the ollama_docker.sh script to pull the required models
-   ./sim/scripts/ollama_docker.sh pull <model_name>
-   ```
-
-2. **Start Sim Studio with Local Models**
-
-   ```bash
-   #Start Sim Studio with local model support
-   ./start_simstudio_docker.sh --local
-
-   # or
-
-   # Start Sim Studio with local model support if you have nvidia GPU
-   docker compose up --profile local-gpu -d --build
-
-   # or
-
-   # Start Sim Studio with local model support if you don't have nvidia GPU
-   docker compose up --profile local-cpu -d --build
-   ```
-
-The application will now be configured to use your local models. You can access it at [http://localhost:3000/w/](http://localhost:3000/w/).
-
-### Option 2: Dev Containers
-
-1. Open VS Code or your favorite VS Code fork (Cursor, Windsurf, etc.)
-2. Install the [Remote - Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
-3. Open the project in your editor
-4. Click "Reopen in Container" when prompted
-5. The environment will automatically be set up in the `sim` directory
-6. Run `npm run dev` in the terminal or use the `sim-start` alias
-
-### Option 3: Manual Setup
-
-1. **Install Dependencies**
+#### Option 1: Docker Installation (Recommended)
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/sim.git
-cd sim/sim
+git clone https://github.com/YOUR_USERNAME/auto-shipping-coordinator.git
+cd auto-shipping-coordinator
+
+# Create environment file
+cp .env.example .env
+
+# Edit the .env file with your API credentials
+# Start the system
+docker compose up -d --build
+```
+
+#### Option 2: Manual Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/YOUR_USERNAME/auto-shipping-coordinator.git
+cd auto-shipping-coordinator
 
 # Install dependencies
 npm install
-```
 
-2. **Set Up Environment**
-
-```bash
-# Copy .env.example to .env
+# Create and configure environment file
 cp .env.example .env
 
-# Configure your .env file with the required environment variables:
-# - Database connection (PostgreSQL)
-# - Authentication settings (Better-Auth Secret)
+# Start the server
+npm start
 ```
 
-⚠️ **Important Notes:**
-- If `RESEND_API_KEY` is not set, verification codes for login/signup will be logged to the console.
-- You can use these logged codes for testing authentication locally.
-- For production environments, you should set up a proper email provider.
+### Configuration
 
-3. **Set Up Database**
+1. **Set up Sim Studio Workflow**:
+   - Import the workflow configuration from `config/sim-workflow.json`
+   - Update environment variables with your Sim Studio workflow ID
 
-```bash
-# Push the database schema
-npx drizzle-kit push
-```
+2. **Configure Webhooks**:
+   - Set up Dialpad webhook: `https://your-server.com/webhooks/dialpad`
+   - Set up BatsCRM webhook: `https://your-server.com/webhooks/batscrm`
 
-4. **Start Development Server**
+3. **Customize Templates**:
+   - Edit communication templates in `templates/communication-templates.md`
+   - Configure notification formats in the Sim Studio workflow
 
-```bash
-# Start the development server
-npm run dev
-```
+## Documentation
 
-5. **Open [http://localhost:3000](http://localhost:3000) in your browser**
+Detailed documentation is available in the `docs` directory:
+
+- **Implementation Guide**: Step-by-step instructions for building the Sim Studio workflow
+- **Setup Guide**: Deployment and configuration instructions
+- **API Reference**: Details on available endpoints and integration options
+- **Customization Guide**: How to tailor the system to your specific needs
 
 ## Tech Stack
 
-- **Framework**: [Next.js](https://nextjs.org/) (App Router)
-- **Database**: PostgreSQL with [Drizzle ORM](https://orm.drizzle.team)
-- **Authentication**: [Better Auth](https://better-auth.com)
-- **UI**: [Shadcn](https://ui.shadcn.com/), [Tailwind CSS](https://tailwindcss.com)
-- **State Management**: [Zustand](https://zustand-demo.pmnd.rs/)
-- **Flow Editor**: [ReactFlow](https://reactflow.dev/)
-- **Docs**: [Fumadocs](https://fumadocs.vercel.app/)
+- **Core Integration**: [Sim Studio](https://simstudio.ai)
+- **Communication**: [Dialpad API](https://developers.dialpad.com)
+- **CRM Integration**: BatsCRM API
+- **Team Collaboration**: [Slack API](https://api.slack.com)
+- **Backend**: Node.js with Express
+- **Containerization**: Docker
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guide](.github/CONTRIBUTING.md) for details.
+We welcome contributions! Please see our [Contributing Guide](docs/CONTRIBUTING.md) for details.
 
 ## License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
+## Acknowledgments
+
+- Built on the powerful [Sim Studio](https://simstudio.ai) platform
+- Special thanks to the Sim Studio team for their excellent workflow engine
+
 ##
 
-<p align="center">Made with ❤️ by the Sim Studio Team</p>
+<p align="center">Made with ❤️ by YOUR_NAME</p>
