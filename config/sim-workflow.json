@@ -1,0 +1,94 @@
+{
+  "name": "Auto Shipping Coordinator Workflow",
+  "description": "A workflow that automates shipping coordination using Dialpad, BatsCRM, and Slack",
+  "version": "1.0.0",
+  "nodes": [
+    {
+      "id": "event-router",
+      "type": "router",
+      "name": "Event Router",
+      "config": {
+        "conditions": [
+          {
+            "condition": "input.type === 'order_update'",
+            "target": "process-order-update"
+          },
+          {
+            "condition": "input.type === 'incoming_message'",
+            "target": "process-customer-message"
+          },
+          {
+            "condition": "input.type === 'manual_shipping_update'",
+            "target": "process-shipping-update"
+          }
+        ],
+        "default": "default-handler"
+      }
+    },
+    {
+      "id": "process-order-update",
+      "type": "llm",
+      "name": "Process Order Update",
+      "config": {
+        "model": "claude-3-sonnet-20240229",
+        "system_prompt": "You are a shipping coordinator assistant. Your job is to analyze order updates and determine what actions should be taken. You need to decide if the customer should be contacted and what messages should be sent based on the order status.",
+        "user_prompt": "An order has been {input.event === 'order.created' ? 'created' : 'updated'}. Please analyze the following order and customer information and determine what actions should be taken:\n\nOrder: {JSON.stringify(input.order, null, 2)}\nCustomer: {JSON.stringify(input.customer, null, 2)}\n\nProvide a JSON response with the following structure:\n{\n  \"actions\": [\n    // Actions to take (send_sms, make_call, update_order_status, send_slack_notification)\n  ],\n  \"notes\": \"Reasoning behind these actions\"\n}"
+      },
+      "next": "execute-actions"
+    },
+    {
+      "id": "process-customer-message",
+      "type": "llm",
+      "name": "Process Customer Message",
+      "config": {
+        "model": "claude-3-sonnet-20240229",
+        "system_prompt": "You are a shipping coordinator assistant. Your job is to analyze incoming customer messages and determine how to respond. You need to understand customer inquiries related to shipping and provide appropriate responses.",
+        "user_prompt": "A customer has sent the following message:\n\nFrom: {input.from}\nMessage: {input.body}\n\nPlease analyze this message and determine appropriate actions to take. The message may be about order status, shipping inquiries, delivery issues, or other shipping-related questions.\n\nProvide a JSON response with the following structure:\n{\n  \"understood_intent\": \"Brief description of what the customer is asking\",\n  \"actions\": [\n    // Actions to take (send_sms, make_call, update_order_status, send_slack_notification)\n  ],\n  \"notes\": \"Reasoning behind these actions\"\n}"
+      },
+      "next": "execute-actions"
+    },
+    {
+      "id": "process-shipping-update",
+      "type": "llm",
+      "name": "Process Shipping Update",
+      "config": {
+        "model": "claude-3-sonnet-20240229",
+        "system_prompt": "You are a shipping coordinator assistant. Your job is to analyze shipping updates and determine what notifications should be sent to customers and team members. You need to craft appropriate messages based on the shipping status.",
+        "user_prompt": "A shipping update has been made:\n\nOrder: {JSON.stringify(input.order, null, 2)}\nCustomer: {JSON.stringify(input.customer, null, 2)}\nStatus: {input.status}\nNotes: {input.notes || 'N/A'}\nTracking Number: {input.trackingNumber || 'N/A'}\nCarrier: {input.carrier || 'N/A'}\n\nPlease determine what notifications should be sent to the customer and team members based on this update.\n\nProvide a JSON response with the following structure:\n{\n  \"customer_notification\": {\n    \"send\": true/false,\n    \"message\": \"Message to send to customer\",\n    \"channel\": \"sms\" or \"call\"\n  },\n  \"team_notification\": {\n    \"send\": true/false,\n    \"channel\": \"shipping-updates\",\n    \"message\": \"Brief notification message\"\n  },\n  \"actions\": [\n    // Additional actions to take\n  ],\n  \"notes\": \"Reasoning behind these actions\"\n}"
+      },
+      "next": "process-notifications"
+    },
+    {
+      "id": "process-notifications",
+      "type": "function",
+      "name": "Process Notifications",
+      "config": {
+        "function": "async (input, context) => {\n  const result = context.prevResult;\n  const actions = [];\n  \n  // Process customer notification\n  if (result.customer_notification && result.customer_notification.send) {\n    if (result.customer_notification.channel === 'sms') {\n      actions.push({\n        type: 'send_sms',\n        phoneNumber: input.customer.phone,\n        message: result.customer_notification.message\n      });\n    } else if (result.customer_notification.channel === 'call') {\n      actions.push({\n        type: 'make_call',\n        phoneNumber: input.customer.phone,\n        callerId: process.env.DIALPAD_CALLER_ID,\n        notes: result.customer_notification.message\n      });\n    }\n  }\n  \n  // Process team notification\n  if (result.team_notification && result.team_notification.send) {\n    // Create rich Slack notification\n    const blocks = [\n      {\n        type: \"header\",\n        text: {\n          type: \"plain_text\",\n          text: `Shipping Update: Order #${input.order.id}`,\n          emoji: true\n        }\n      },\n      {\n        type: \"section\",\n        fields: [\n          {\n            type: \"mrkdwn\",\n            text: `*Customer:*\\n${input.customer.name}`\n          },\n          {\n            type: \"mrkdwn\",\n            text: `*Status:*\\n${input.status}`\n          }\n        ]\n      },\n      {\n        type: \"section\",\n        fields: [\n          {\n            type: \"mrkdwn\",\n            text: `*Tracking #:*\\n${input.trackingNumber || 'N/A'}`\n          },\n          {\n            type: \"mrkdwn\",\n            text: `*Carrier:*\\n${input.carrier || 'N/A'}`\n          }\n        ]\n      },\n      {\n        type: \"section\",\n        text: {\n          type: \"mrkdwn\",\n          text: `*Notes:*\\n${input.notes || 'N/A'}`\n        }\n      }\n    ];\n    \n    actions.push({\n      type: 'send_slack_notification',\n      channel: result.team_notification.channel,\n      message: result.team_notification.message,\n      blocks: blocks\n    });\n  }\n  \n  // Add any additional actions\n  if (Array.isArray(result.actions)) {\n    actions.push(...result.actions);\n  }\n  \n  return { actions, notes: result.notes };\n}"
+      },
+      "next": "execute-actions"
+    },
+    {
+      "id": "execute-actions",
+      "type": "output",
+      "name": "Return Actions",
+      "config": {
+        "mapping": {
+          "actions": "context.prevResult.actions || []",
+          "notes": "context.prevResult.notes || ''"
+        }
+      }
+    },
+    {
+      "id": "default-handler",
+      "type": "output",
+      "name": "Default Handler",
+      "config": {
+        "mapping": {
+          "actions": "[]",
+          "notes": "'Unrecognized event type'"
+        }
+      }
+    }
+  ],
+  "start": "event-router"
+}
